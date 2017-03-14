@@ -120,46 +120,7 @@
 			:height (nth 1 file-or-data))
 		  props)))
       (apply #'create-image file-or-data type data-p props)))
-  (defalias 'mime-image-insert 'insert-image))
- (t
-  (if (and (featurep 'mule) (require 'bitmap nil t))
-      (progn
-	(defun mime-image-read-xbm-buffer (buffer)
-	  (condition-case nil
-	      (mapconcat #'bitmap-compose
-			 (append (bitmap-decode-xbm
-				  (bitmap-read-xbm-buffer
-				   (current-buffer))) nil) "\n")
-	    (error nil)))
-	(defun mime-image-insert (image &optional string area)
-	  (insert image)))
-    (defalias 'mime-image-read-xbm-buffer
-      'mime-image-normalize-xbm-buffer)
-    (defun mime-image-insert (image &optional string area)
-      (save-restriction
-	(narrow-to-region (point)(point))
-	(let ((face (gensym "mii")))
-	  (or (facep face) (make-face face))
-	  (set-face-stipple face image)
-	  (let ((row (make-string (/ (car image)  (frame-char-width)) ? ))
-		(height (/ (nth 1 image)  (frame-char-height)))
-		(i 0))
-	    (while (< i height)
-	      (set-text-properties (point) (progn (insert row)(point))
-				   (list 'face face))
-	      (insert "\n")
-	      (setq i (1+ i))))))))
-
-  (defun mime-image-type-available-p (type)
-    (eq type 'xbm))
-
-  (defun mime-image-create (file-or-data &optional type data-p &rest props)
-    (when (or (null type) (eq type 'xbm))
-      (with-temp-buffer
-	(if data-p
-	    (insert file-or-data)
-	  (insert-file-contents file-or-data))
-	(mime-image-read-xbm-buffer (current-buffer)))))))
+  (defalias 'mime-image-insert 'insert-image)))
 
 (defvar mime-image-format-alist
   '((image jpeg		jpeg)
