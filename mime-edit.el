@@ -754,19 +754,17 @@ If encoding is nil, it is determined from its contents."
     (iso-2022-jp-2	7 "base64")
     (iso-2022-int-1	7 "base64")))
 
-(defvar mime-transfer-level 7
+(defvar-local mime-transfer-level 7
   "*A number of network transfer level.  It should be 7 or bigger.")
-(make-variable-buffer-local 'mime-transfer-level)
 
 (defsubst mime-encoding-name (transfer-level &optional not-omit)
   (cond ((> transfer-level 8) "binary")
 	((= transfer-level 8) "8bit")
 	(not-omit "7bit")))
 
-(defvar mime-transfer-level-string
+(defvar-local mime-transfer-level-string
   (mime-encoding-name mime-transfer-level 'not-omit)
   "A string formatted version of mime-transfer-level")
-(make-variable-buffer-local 'mime-transfer-level-string)
 
 ;;; @@ about content transfer encoding
 
@@ -969,8 +967,7 @@ Tspecials means any character that matches with it in header must be quoted.")
 ;;; @ keymap and menu
 ;;;
 
-(defvar mime-edit-mode-flag nil)
-(make-variable-buffer-local 'mime-edit-mode-flag)
+(defvar-local mime-edit-mode-flag nil)
 
 (defvar mime-edit-mode-entity-prefix "\C-c\C-x"
   "Keymap prefix for MIME-Edit mode commands to insert entity or set status.")
@@ -2798,8 +2795,7 @@ Optional TRANSFER-LEVEL is a number of transfer-level, 7 or 8."
 ;;; @ pgp
 ;;;
 
-(defvar mime-edit-pgp-processing nil)
-(make-variable-buffer-local 'mime-edit-pgp-processing)
+(defvar-local mime-edit-pgp-processing nil)
 
 (defun mime-edit-set-sign (arg)
   (interactive

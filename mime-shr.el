@@ -43,8 +43,7 @@ This has higher piority than `mime-shr-allowed-images'."
   :group 'mime-view
   :type '(choice regexp (const nil)))
 
-(defvar mime-shr-root-entity nil)
-(make-variable-buffer-local 'mime-shr-root-entity)
+(defvar-local mime-shr-root-entity nil)
 
 (defun mime-shr-preview-text/html (entity _situation)
   (let ((dom (with-temp-buffer
