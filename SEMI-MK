@@ -1,11 +1,11 @@
-;;; -*-Emacs-Lisp-*-
+;;; -*- mode: emacs-lisp; lexical-binding: nil -*-
 
 ;; SEMI-MK: installer for SEMI.
 
 ;;; Code:
 
 (defun config-semi ()
-  (let (prefix exec-prefix lisp-dir version-specific-lisp-dir)
+  (let (prefix lisp-dir version-specific-lisp-dir)
     (and (setq prefix (car command-line-args-left))
 	 (or (string-equal "NONE" prefix)
 	     (defvar PREFIX prefix)

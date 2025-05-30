@@ -1,4 +1,4 @@
-;;; -*-Emacs-Lisp-*-
+;;; -*- mode: emacs-lisp; lexical-binding: nil -*-
 
 ;; SEMI-CFG: installation setting about SEMI.
 
@@ -109,10 +109,7 @@
 ;;(setq PREFIX "~/")
 
 ;; Please specify emu prefix [optional]
-(setq EMU_PREFIX
-      (if (string-match "XEmacs" emacs-version)
-	  "emu"
-	""))
+(setq EMU_PREFIX "")
 
 ;; Please specify SEMI prefix [optional]
 (setq SEMI_PREFIX "semi")
