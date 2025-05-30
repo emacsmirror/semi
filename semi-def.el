@@ -102,7 +102,7 @@
       browse-url-button-regexp
     (concat "\\(https?\\|ftps?\\|file\\|gopher\\|news\\|nntps?\\|telnets?\\|wais\\|mailto\\):"
 	    "\\(//[-a-zA-Z0-9_.]+:[0-9]*\\)?"
-	    "[-a-zA-Z0-9_=?#$:@~`%&*+|\\/.,]*[-a-zA-Z0-9_=#$:@~`%&*+|\\/]"))
+	    "[-a-zA-Z0-9_=?#$!;:@~`%&*+|\\/.,]*[-a-zA-Z0-9_=#$@~`%&*+|\\/]"))
   "*Regexp to match URL in text body."
   :group 'mime
   :type 'regexp)
