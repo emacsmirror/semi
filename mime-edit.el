@@ -2355,7 +2355,7 @@ Content-Disposition: attachment; filename=smime.p7m][base64]]
 (defsubst replace-space-with-underline (str)
   (mapconcat (lambda (arg)
 	       (list
-		(if (eq arg ?\ )
+		(if (eq arg ?\s)
 		    ?_
 		  arg))) str nil))
 
