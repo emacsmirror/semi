@@ -2352,7 +2352,7 @@ Content-Disposition: attachment; filename=smime.p7m][base64]]
 ")
 		  (base64-encode-string cipher)))))))
 
-(defsubst replace-space-with-underline (str)
+(defsubst mime-edit-replace-space-with-underline (str)
   (mapconcat (lambda (arg)
 	       (list
 		(if (eq arg ?\s)
@@ -2361,7 +2361,7 @@ Content-Disposition: attachment; filename=smime.p7m][base64]]
 
 (defun mime-edit-make-boundary ()
   (concat mime-multipart-boundary "_"
-	  (replace-space-with-underline (current-time-string))))
+	  (mime-edit-replace-space-with-underline (current-time-string))))
 
 (defun mime-edit-translate-body ()
   "Encode the tagged MIME body in current buffer in MIME compliant message."
@@ -2862,7 +2862,8 @@ Content-Type: message/partial; id=%s; number=%d; total=%d\n%s\n"
 		mime-edit-message-default-max-lines)))
   (let ((separator mail-header-separator)
 	(id (concat "\""
-		    (replace-space-with-underline (current-time-string))
+		    (mime-edit-replace-space-with-underline
+		     (current-time-string))
 		    "@" (system-name) "\"")))
     (run-hooks 'mime-edit-before-split-hook)
     (let ((the-buf (current-buffer))
