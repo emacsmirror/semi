@@ -2352,12 +2352,11 @@ Content-Disposition: attachment; filename=smime.p7m][base64]]
 ")
 		  (base64-encode-string cipher)))))))
 
-(defsubst mime-edit-replace-space-with-underline (str)
-  (mapconcat (lambda (arg)
-	       (list
-		(if (eq arg ?\s)
-		    ?_
-		  arg))) str nil))
+(defsubst mime-edit-replace-space-with-underline (string)
+  (dotimes (i (length string))
+    (when (eq (aref string i) ?\s)
+      (aset string i ?_)))
+  string)
 
 (defun mime-edit-make-boundary ()
   (concat mime-multipart-boundary "_"
