@@ -985,6 +985,8 @@ Tspecials means any character that matches with it in header must be quoted.")
 (define-key mime-edit-mode-entity-map "\C-s" 'mime-edit-insert-signature)
 (define-key mime-edit-mode-entity-map "\C-k" 'mime-edit-insert-key)
 (define-key mime-edit-mode-entity-map "t"    'mime-edit-insert-tag)
+(when (fboundp #'yank-media)
+  (define-key mime-edit-mode-entity-map "y" 'yank-media))
 
 (define-key mime-edit-mode-entity-map "7" 'mime-edit-set-transfer-level-7bit)
 (define-key mime-edit-mode-entity-map "8" 'mime-edit-set-transfer-level-8bit)
@@ -1031,7 +1033,7 @@ Tspecials means any character that matches with it in header must be quoted.")
 (defconst mime-edit-menu-title "MIME-Edit")
 
 (defconst mime-edit-menu-list
-  '((mime-help	"Describe MIME editor mode" mime-edit-help)
+  `((mime-help	"Describe MIME editor mode" mime-edit-help)
     (file	"Insert File"		mime-edit-insert-file)
     (file-as-text "Insert File as text"	mime-edit-insert-file-as-text)
     (external	"Insert External"	mime-edit-insert-external)
@@ -1041,6 +1043,8 @@ Tspecials means any character that matches with it in header must be quoted.")
     (signature	"Insert Signature"	mime-edit-insert-signature)
     (text	"Insert Text"		mime-edit-insert-text)
     (tag	"Insert Tag"		mime-edit-insert-tag)
+    ,(when (fboundp #'yank-media)
+       '(media	"Yank Media"		yank-media))
     (alternative "Enclose as alternative"
 		 mime-edit-enclose-alternative-region)
     (parallel	"Enclose as parallel"	mime-edit-enclose-parallel-region)
@@ -1125,6 +1129,7 @@ Following commands are available in addition to major mode commands:
 \\[mime-edit-insert-signature]	insert a signature file at end.
 \\[mime-edit-insert-key]	insert PGP public key.
 \\[mime-edit-insert-tag]	insert a new MIME tag.
+\\[mime-edit-yank-media]	insert media from the clipboard (if supported).
 
 \[make enclosure (maybe multipart)\]
 \\[mime-edit-enclose-alternative-region]   enclose as multipart/alternative.
@@ -1247,6 +1252,8 @@ User customizable variables (not documented all of them):
     (setq paragraph-separate
 	  (regexp-or mime-edit-single-part-tag-regexp
 		     paragraph-separate))
+    (when (fboundp 'yank-media-handler)
+      (yank-media-handler ".*" #'mime-edit-yank-media))
     (run-hooks 'mime-edit-mode-hook)
     (message
      "%s"
@@ -1332,24 +1339,23 @@ If optional argument SUBTYPE is not nil, text/SUBTYPE tag is inserted."
        ((eq value 'file)
 	(setq value (mime-edit-insert-file-filename file)))
        ((eq value 'charset)
-	(setq value (mime-edit-insert-file-charset file verbose))))
+	(setq value (if (file-readable-p file)
+			(mime-edit-insert-file-charset file verbose)
+		      "utf-8"))))
       (when value
 	(if (symbolp value) (setq value (symbol-name value)))
 	(setq strings (nconc strings (list "; " attribute "=" value))))
       (setq parameters (cdr parameters)))
     (apply 'concat strings)))
 
-(defun mime-edit-insert-file (file &optional verbose)
-  "Insert a message from a file."
-  (interactive "fInsert file as MIME message: \nP")
-  (let*  ((guess (mime-find-file-type file))
-	  (type (nth 0 guess))
-	  (subtype (nth 1 guess))
-	  (parameters (nth 2 guess))
-	  (encoding (nth 3 guess))
-	  (disposition-type (nth 4 guess))
-	  (disposition-params (nth 5 guess)))
-    (setq verbose (if (called-interactively-p 'interactive)
+(defun mime-edit-insert-file-1 (file guess interactive verbose &optional data)
+  (let ((type (nth 0 guess))
+	(subtype (nth 1 guess))
+	(parameters (nth 2 guess))
+	(encoding (nth 3 guess))
+	(disposition-type (nth 4 guess))
+	(disposition-params (nth 5 guess)))
+    (setq verbose (if interactive
 		      (null (eq (null verbose)
 				(null mime-edit-insert-file-confirm)))
 		    verbose))
@@ -1366,7 +1372,35 @@ If optional argument SUBTYPE is not nil, text/SUBTYPE tag is inserted."
 		     (mime-edit-insert-file-parameters
 		      disposition-params file verbose)))))
     (mime-edit-insert-tag type subtype parameters)
-    (mime-edit-insert-binary-file file encoding)))
+    (mime-edit-insert-binary-file file encoding data)))
+
+(defun mime-edit-insert-file (file &optional verbose)
+  "Insert a message from a file."
+  (interactive "fInsert file as MIME message: \nP")
+  (mime-edit-insert-file-1 file (mime-find-file-type file)
+			   (called-interactively-p 'interactive) verbose))
+
+(defun mime-edit-yank-media (type data)
+  (setq type (symbol-name type))
+  (unless (string-match "\\([^/]+\\)/\\(.+\\)" type)
+    (error "Unsupported type, %s" type))
+  (let ((mime-type (match-string 1 type))
+	(mime-subtype (match-string 2 type))
+	(types mime-file-types)
+	guess)
+    (while types
+      (if (and (string= mime-type (nth 1 (car types)))
+	       (string= mime-subtype (nth 2 (car types))))
+	  (setq guess (cdar types)
+		types nil)
+	(setq types (cdr types))))
+    (unless guess
+      (setq guess (cons mime-type
+			(cons mime-subtype
+			      (cddr (cdar (last mime-file-types)))))))
+    (mime-edit-insert-file-1
+     (concat mime-subtype "-" (substring (secure-hash 'sha1 data) 0 8))
+     guess t nil data)))
 
 (defun mime-edit-insert-file-as-text (file &optional verbose)
   "Insert a text from a file.  This function decodes inserted file and
@@ -1488,9 +1522,10 @@ If nothing is inserted, return nil."
       nil				;Nothing is created.
       )))
 
-(defun mime-edit-insert-binary-file (file &optional encoding)
+(defun mime-edit-insert-binary-file (file &optional encoding data)
   "Insert binary FILE at point.
-Optional argument ENCODING specifies an encoding method such as base64."
+Optional argument ENCODING specifies an encoding method such as base64.
+When DATA is non-nil, insert it instead of FILE's contents."
   (setq encoding (or encoding "base64"))
   (let* ((tagend (1- (point)))		;End of the tag
 	 (hide-p (and mime-auto-hide-body
@@ -1502,7 +1537,19 @@ Optional argument ENCODING specifies an encoding method such as base64."
 			     (string-equal en "binary")))))))
     (save-restriction
       (narrow-to-region tagend (point))
-      (mime-insert-encoded-file file encoding)
+      (if data
+	  (cond
+	   ((string= encoding "base64")
+	    (save-restriction
+	      (narrow-to-region (point) (point))
+	      (insert (base64-encode-string data))
+	      (goto-char (point-max)))
+	    (or (bolp) (insert ?\n)))
+	   ((member encoding '("7bit" "8bit" "binary"))
+	    (insert data))
+	   (t
+	    (error "Unsupported encoding, %s" encoding)))
+	(mime-insert-encoded-file file encoding))
       (if hide-p
 	  (progn
 	    (invisible-region (point-min) (point-max))
