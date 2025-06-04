@@ -1052,6 +1052,10 @@ Tspecials means any character that matches with it in header must be quoted.")
     (digest	"Enclose as digest"	mime-edit-enclose-digest-region)
     (signed	"Enclose as signed"	mime-edit-enclose-pgp-signed-region)
     (encrypted	"Enclose as encrypted"	mime-edit-enclose-pgp-encrypted-region)
+    (smime-signed	"Enclose as S/MIME signed"
+		mime-edit-enclose-smime-signed-region)
+    (smime-encrypted	"Enclose as S/MIME encrypted"
+		mime-edit-enclose-smime-encrypted-region)
     (quote	"Verbatim region"	mime-edit-enclose-quote-region)
     (key	"Insert Public Key"	mime-edit-insert-key)
     (split	"Set splitting"		mime-edit-set-split)
@@ -1138,6 +1142,8 @@ Following commands are available in addition to major mode commands:
 \\[mime-edit-enclose-digest-region]	   enclose as multipart/digest.
 \\[mime-edit-enclose-pgp-signed-region]	   enclose as PGP signed.
 \\[mime-edit-enclose-pgp-encrypted-region] enclose as PGP encrypted.
+\\[mime-edit-enclose-smime-signed-region]	enclose as S/MIME signed.
+\\[mime-edit-enclose-smime-encrypted-region]	enclose as S/MIME encrypted.
 \\[mime-edit-enclose-quote-region]	   enclose as verbose mode
 					   (to avoid to expand tags)
 
