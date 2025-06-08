@@ -1557,102 +1557,63 @@ part (if exist) or the first language message part."
          (setq func (lookup-key menu (apply #'vector events)))
          (commandp func)
          (funcall func))))
-(defvar mouse-button-2 [mouse-2])
-(defvar mouse-button-3 [mouse-3])
+
+(defvar mime-view-mode-map
+  (let ((keymap (make-sparse-keymap)))
+    (mapc (lambda (elt)
+	    (when elt
+	      (define-key keymap (car elt) (cdr elt))))
+	  `(("u"            . mime-preview-move-to-upper)
+	    ("p"            . mime-preview-move-to-previous)
+	    ("n"            . mime-preview-move-to-next)
+	    ("\e\t"         . mime-preview-move-to-previous)
+	    ("\t"           . mime-preview-move-to-next)
+	    (" "            . mime-preview-scroll-up-entity)
+	    ("\M- "         . mime-preview-scroll-down-entity)
+	    ("\177"         . mime-preview-scroll-down-entity)
+	    ("\C-m"         . mime-preview-next-line-entity)
+	    ("\C-\M-m"      . mime-preview-previous-line-entity)
+	    ("v"            . mime-preview-play-current-entity)
+	    ("e"            . mime-preview-extract-current-entity)
+	    ("\C-c\C-p"     . mime-preview-print-current-entity)
+	    ("\C-c\C-t\C-f" . mime-preview-toggle-header)
+	    ("\C-c\C-th"    . mime-preview-toggle-header)
+	    ("\C-c\C-t\C-c" . mime-preview-toggle-content)
+	    ("\C-c\C-v\C-f" . mime-preview-show-header)
+	    ("\C-c\C-vh"    . mime-preview-show-header)
+	    ("\C-c\C-v\C-c" . mime-preview-show-content)
+	    ("\C-c\C-d\C-f" . mime-preview-hide-header)
+	    ("\C-c\C-dh"    . mime-preview-hide-header)
+	    ("\C-c\C-d\C-c" . mime-preview-hide-content)
+	    ("a"            . mime-preview-follow-current-entity)
+	    ("q"            . mime-preview-quit)
+	    ("\C-c\C-x"     . mime-preview-kill-buffer)
+	    ("?"            . describe-mode)
+	    ([tab]          . mime-preview-move-to-next)
+	    ([delete]       . mime-preview-scroll-down-entity)
+	    ([backspace]    . mime-preview-scroll-down-entity)
+	    ([mouse-2]      . mime-button-dispatcher)
+	    ([mouse-3]      . mime-view-popup-menu)
+	    ([menu-bar mime-view] .
+	     ,(cons mime-view-menu-title
+		    (make-sparse-keymap mime-view-menu-title)))))
+    (mapc (lambda (item)
+	    (define-key keymap
+			(vector 'menu-bar 'mime-view (car item))
+			(cons (nth 1 item) (nth 2 item))))
+	  (reverse mime-view-menu-list))
+    keymap))
 
 (defun mime-view-define-keymap (&optional default)
-  (let ((mime-view-mode-map (if (keymapp default)
-				(copy-keymap default)
-			      (make-sparse-keymap))))
-    (define-key mime-view-mode-map
-      "u"        (function mime-preview-move-to-upper))
-    (define-key mime-view-mode-map
-      "p"        (function mime-preview-move-to-previous))
-    (define-key mime-view-mode-map
-      "n"        (function mime-preview-move-to-next))
-    (define-key mime-view-mode-map
-      "\e\t"     (function mime-preview-move-to-previous))
-    (define-key mime-view-mode-map
-      "\t"       (function mime-preview-move-to-next))
-    (define-key mime-view-mode-map
-      " "        (function mime-preview-scroll-up-entity))
-    (define-key mime-view-mode-map
-      "\M- "     (function mime-preview-scroll-down-entity))
-    (define-key mime-view-mode-map
-      "\177"     (function mime-preview-scroll-down-entity))
-    (define-key mime-view-mode-map
-      "\C-m"     (function mime-preview-next-line-entity))
-    (define-key mime-view-mode-map
-      "\C-\M-m"  (function mime-preview-previous-line-entity))
-    (define-key mime-view-mode-map
-      "v"        (function mime-preview-play-current-entity))
-    (define-key mime-view-mode-map
-      "e"        (function mime-preview-extract-current-entity))
-    (define-key mime-view-mode-map
-      "\C-c\C-p" (function mime-preview-print-current-entity))
-
-    (define-key mime-view-mode-map
-      "\C-c\C-t\C-f" (function mime-preview-toggle-header))
-    (define-key mime-view-mode-map
-      "\C-c\C-th" (function mime-preview-toggle-header))
-    (define-key mime-view-mode-map
-      "\C-c\C-t\C-c" (function mime-preview-toggle-content))
-
-    (define-key mime-view-mode-map
-      "\C-c\C-v\C-f" (function mime-preview-show-header))
-    (define-key mime-view-mode-map
-      "\C-c\C-vh" (function mime-preview-show-header))
-    (define-key mime-view-mode-map
-      "\C-c\C-v\C-c" (function mime-preview-show-content))
-
-    (define-key mime-view-mode-map
-      "\C-c\C-d\C-f" (function mime-preview-hide-header))
-    (define-key mime-view-mode-map
-      "\C-c\C-dh" (function mime-preview-hide-header))
-    (define-key mime-view-mode-map
-      "\C-c\C-d\C-c" (function mime-preview-hide-content))
-
-    (define-key mime-view-mode-map
-      "a"        (function mime-preview-follow-current-entity))
-    (define-key mime-view-mode-map
-      "q"        (function mime-preview-quit))
-    (define-key mime-view-mode-map
-      "\C-c\C-x" (function mime-preview-kill-buffer))
-    ;; (define-key mime-view-mode-map
-    ;;   "<"        (function beginning-of-buffer))
-    ;; (define-key mime-view-mode-map
-    ;;   ">"        (function end-of-buffer))
-    (define-key mime-view-mode-map
-      "?"        (function describe-mode))
-    (define-key mime-view-mode-map
-      [tab] (function mime-preview-move-to-next))
-    (define-key mime-view-mode-map
-      [delete] (function mime-preview-scroll-down-entity))
-    (define-key mime-view-mode-map
-      [backspace] (function mime-preview-scroll-down-entity))
-    (if (functionp default)
-	(setq mime-view-mode-map
-	      (append mime-view-mode-map (list (cons t default)))))
-    (if mouse-button-2
-	(define-key mime-view-mode-map
-	  mouse-button-2 (function mime-button-dispatcher)))
-    (define-key mime-view-mode-map
-      mouse-button-3 (function mime-view-popup-menu))
-    (define-key mime-view-mode-map [menu-bar mime-view]
-      (cons mime-view-menu-title
-	    (make-sparse-keymap mime-view-menu-title)))
-    (mapc (function
-	   (lambda (item)
-	     (define-key mime-view-mode-map
-	       (vector 'menu-bar 'mime-view (car item))
-	       (cons (nth 1 item)(nth 2 item)))))
-	  (reverse mime-view-menu-list))
-
+  (let ((keymap (copy-keymap mime-view-mode-map)))
+    (cond
+     ((keymapp default)
+      (set-keymap-parent keymap default))
+     ((functionp default)
+      (setq keymap
+	    (append keymap (list (cons t default))))))
     ;; (run-hooks 'mime-view-define-keymap-hook)
-    mime-view-mode-map))
-
-(defvar mime-view-mode-default-map (mime-view-define-keymap))
-
+    keymap))
 
 (defsubst mime-maybe-hide-echo-buffer ()
   "Clear mime-echo buffer and delete window for it."
@@ -1688,7 +1649,7 @@ buffer of MESSAGE.  If it is nil, current `major-mode' is used.
 
 Optional argument KEYMAP is keymap of MIME-View mode.  If it is
 non-nil, DEFAULT-KEYMAP-OR-FUNCTION is ignored.  If it is nil,
-`mime-view-mode-default-map' is used."
+`mime-view-mode-map' is used."
   (mime-maybe-hide-echo-buffer)
   (let ((win-conf (current-window-configuration)))
     (or preview-buffer
@@ -1721,7 +1682,7 @@ non-nil, DEFAULT-KEYMAP-OR-FUNCTION is ignored.  If it is nil,
        (or keymap
 	   (if default-keymap-or-function
 	       (mime-view-define-keymap default-keymap-or-function)
-	     mime-view-mode-default-map)))
+	     mime-view-mode-map)))
       (let ((point
 	     (next-single-property-change (point-min) 'mime-view-entity)))
 	(if point
