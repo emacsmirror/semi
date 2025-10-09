@@ -1604,6 +1604,10 @@ part (if exist) or the first language message part."
 	  (reverse mime-view-menu-list))
     keymap))
 
+(make-obsolete-variable 'mime-view-mode-default-map
+			'mime-view-mode-map "8 Jun 2025")
+
+
 (defun mime-view-define-keymap (&optional default)
   (let ((keymap (copy-keymap mime-view-mode-map)))
     (cond
