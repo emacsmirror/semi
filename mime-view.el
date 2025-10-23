@@ -500,10 +500,17 @@ mother-buffer."
 	    print-length print-level)
         (when file
           (with-temp-buffer
-            (insert ";;; " (file-name-nondirectory file) "\n")
-            (insert "\n;; This file is generated automatically by "
-                    mime-view-version "\n\n")
-            (insert ";;; Code:\n\n")
+	    (setq buffer-file-coding-system
+		  (or mime-situation-examples-file-coding-system
+		      buffer-file-coding-system))
+	    (insert ";;; " (file-name-nondirectory file)
+		    " -*- mode: emacs-lisp; coding: "
+		    (symbol-name
+		     (coding-system-base buffer-file-coding-system))
+		    "; lexical-binding: nil; -*-\n"
+		    "\n;; This file is generated automatically by "
+		    mime-view-version "\n\n"
+		    ";;; Code:\n\n")
             (if mime-preview-situation-example-list
                 (pp `(setq mime-preview-situation-example-list
                            ',mime-preview-situation-example-list)
@@ -515,8 +522,6 @@ mother-buffer."
             (insert "\n;;; "
                     (file-name-nondirectory file)
                     " ends here.\n")
-            (setq buffer-file-coding-system
-                  mime-situation-examples-file-coding-system)
             (setq buffer-file-name file)
             (save-buffer))))))
 
