@@ -79,7 +79,7 @@ When `mime-image-normalize-xbm' is non-nil, original size is
 always used for xbm image."
     :group 'mime-view
     :type '(choice (const :tag "Use original size" nil)
-		   (float :tag "Ratio to frame height")
+		   (float :tag "Ratio to window body height")
 		   (integer :tag "Specify in pixel")))
 
 (defcustom mime-image-max-width nil
@@ -138,7 +138,7 @@ Furthermore, image scaling for xbm image is disabled."
 		      `(:max-height
 			,(if (integerp mime-image-max-height)
 			     mime-image-max-height
-			   (floor (* (frame-pixel-height)
+			   (floor (* (window-body-height nil t)
 				     mime-image-max-height)))))
 		   props))
     (cond
